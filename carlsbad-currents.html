@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Carlsbad Currents</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --ocean:#0077a8;
+  --ocean-light:#e6f4fa;
+  --ocean-dark:#005580;
+  --wave:#00a8c6;
+  --ink:#111111;
+  --ink-soft:#333333;
+  --muted:#6b6b6b;
+  --rule:#d9d9d9;
+  --bg:#ffffff;
+  --bg-soft:#f8f8f8;
+  --paper:#fafafa;
+}
+html{scroll-behavior:smooth;}
+body{font-family:'Source Serif 4',Georgia,serif;background:var(--bg);color:var(--ink);font-size:16px;line-height:1.6;}
+a{color:inherit;text-decoration:none;cursor:pointer;}
+img{max-width:100%;display:block;}
+
+/* ── TOPBAR ── */
+.topbar{
+  background:var(--ink);
+  color:#ccc;
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  letter-spacing:0.05em;
+  padding:6px 24px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+.topbar-right a{color:#aaa;margin-left:14px;transition:color 0.15s;}
+.topbar-right a:hover{color:var(--wave);}
+
+/* ── MASTHEAD ── */
+.masthead{
+  border-bottom:3px solid var(--ink);
+  padding:24px 24px 16px;
+  text-align:center;
+  position:relative;
+}
+.masthead::after{
+  content:'';
+  display:block;
+  height:3px;
+  background:linear-gradient(90deg,var(--ocean),var(--wave),var(--ocean));
+  margin-top:4px;
+}
+.masthead-meta{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  letter-spacing:0.14em;
+  text-transform:uppercase;
+  color:var(--muted);
+  margin-bottom:10px;
+}
+.masthead h1{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:clamp(42px,7vw,88px);
+  font-weight:900;
+  line-height:0.95;
+  letter-spacing:-0.02em;
+  color:var(--ink);
+}
+.masthead-sub{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  letter-spacing:0.1em;
+  color:var(--muted);
+  margin-top:10px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:14px;
+}
+.masthead-sub span{width:40px;height:1px;background:var(--rule);display:inline-block;}
+
+/* ── NAV ── */
+.nav-wrap{border-bottom:1px solid var(--rule);position:sticky;top:0;background:var(--bg);z-index:100;}
+nav{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:0 16px;
+  max-width:1200px;
+  margin:0 auto;
+  position:relative;
+}
+nav a{
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;
+  font-weight:500;
+  letter-spacing:0.09em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  padding:13px 14px;
+  border-bottom:2px solid transparent;
+  transition:color 0.15s,border-color 0.15s;
+  white-space:nowrap;
+}
+nav a:hover,nav a.active{color:var(--ocean);border-bottom-color:var(--ocean);}
+
+/* hamburger */
+.hamburger{
+  display:none;
+  flex-direction:column;
+  gap:4px;
+  cursor:pointer;
+  padding:14px 8px;
+  margin-left:auto;
+}
+.hamburger span{width:22px;height:2px;background:var(--ink);border-radius:2px;transition:all 0.2s;}
+.mobile-menu{
+  display:none;
+  flex-direction:column;
+  background:var(--bg);
+  border-top:1px solid var(--rule);
+  padding:8px 0 16px;
+}
+.mobile-menu a{
+  font-family:'DM Sans',sans-serif;
+  font-size:13px;
+  font-weight:500;
+  letter-spacing:0.08em;
+  text-transform:uppercase;
+  color:var(--ink-soft);
+  padding:11px 24px;
+  border-left:3px solid transparent;
+  transition:color 0.15s,border-color 0.15s;
+}
+.mobile-menu a:hover,
+.mobile-menu a.active{color:var(--ocean);border-left-color:var(--ocean);background:var(--ocean-light);}
+.mobile-menu.open{display:flex;}
+
+/* ── PAGES ── */
+.page{display:none;}
+.page.active{display:block;}
+
+/* ── OCEAN RULE ── */
+.ocean-rule{
+  height:3px;
+  background:linear-gradient(90deg,var(--ocean),var(--wave),var(--ocean));
+  border:none;
+  margin:0;
+}
+
+/* ── SECTION LABEL ── */
+.section-label{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  color:var(--ocean);
+  margin-bottom:8px;
+}
+
+/* ── HOME PAGE ── */
+.home-wrap{max-width:1200px;margin:0 auto;padding:0 24px;}
+
+.hero-grid{
+  display:grid;
+  grid-template-columns:1fr 300px;
+  gap:0;
+  border-bottom:1px solid var(--rule);
+  margin-top:32px;
+}
+.hero-main{padding-right:32px;border-right:1px solid var(--rule);}
+.hero-main h2{
+  font-family:'Playfair Display',Georgia,serif;
+  font-size:clamp(26px,3.5vw,42px);
+  font-weight:700;
+  line-height:1.1;
+  letter-spacing:-0.01em;
+  margin:10px 0 14px;
+}
+.hero-main h2 em{font-style:italic;color:var(--ocean);}
+.hero-img{
+  width:100%;
+  height:240px;
+  background:var(--ocean-light);
+  border:1px solid #c8e8f5;
+  margin-bottom:16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--ocean);
+  position:relative;
+  overflow:hidden;
+}
+.hero-img svg{opacity:0.12;position:absolute;bottom:-10px;left:0;width:100%;}
+.hero-main p{
+  font-size:16px;
+  line-height:1.75;
+  color:var(--ink-soft);
+  font-weight:300;
+  margin-bottom:14px;
+}
+.byline{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  color:var(--muted);
+}
+.byline strong{color:var(--ocean);font-weight:500;}
+.read-more{
+  display:inline-block;
+  margin-top:12px;
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.1em;
+  text-transform:uppercase;
+  color:var(--ocean);
+  border-bottom:1px solid var(--ocean);
+  padding-bottom:1px;
+  transition:opacity 0.15s;
+}
+.read-more:hover{opacity:0.7;}
+
+.hero-sidebar{padding-left:28px;}
+.sidebar-label{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  font-weight:600;
+  letter-spacing:0.16em;
+  text-transform:uppercase;
+  color:var(--muted);
+  border-bottom:1px solid var(--rule);
+  padding-bottom:8px;
+  margin-bottom:20px;
+}
+.sidebar-story{
+  padding-bottom:18px;
+  margin-bottom:18px;
+  border-bottom:1px solid var(--rule);
+}
+.sidebar-story:last-child{border-bottom:none;margin-bottom:0;}
+.sidebar-story h3{
+  font-family:'Playfair Display',serif;
+  font-size:17px;
+  font-weight:700;
+  line-height:1.25;
+  margin:6px 0 6px;
+  cursor:pointer;
+  transition:color 0.15s;
+}
+.sidebar-story h3:hover{color:var(--ocean);}
+.sidebar-story p{font-size:13px;line-height:1.6;color:var(--muted);font-weight:300;}
+
+/* bottom 3 col */
+.bottom-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  border-top:1px solid var(--rule);
+  border-bottom:1px solid var(--rule);
+  margin:32px 0;
+}
+.bottom-card{
+  padding:24px 28px;
+  border-right:1px solid var(--rule);
+  cursor:pointer;
+  transition:background 0.15s;
+}
+.bottom-card:hover{background:var(--bg-soft);}
+.bottom-card:last-child{border-right:none;}
+.bottom-card h3{
+  font-family:'Playfair Display',serif;
+  font-size:19px;
+  font-weight:700;
+  line-height:1.2;
+  margin:8px 0 10px;
+}
+.bottom-card p{font-size:13px;line-height:1.65;color:var(--muted);font-weight:300;margin-bottom:10px;}
+
+/* ── LATEST NEWS ── */
+.news-wrap{max-width:900px;margin:0 auto;padding:32px 24px;}
+.news-wrap h2{
+  font-family:'Playfair Display',serif;
+  font-size:32px;
+  font-weight:700;
+  margin-bottom:6px;
+}
+.page-rule{height:2px;background:linear-gradient(90deg,var(--ocean),var(--wave),transparent);margin:12px 0 28px;border:none;}
+.news-list{display:flex;flex-direction:column;gap:0;}
+.news-item{
+  display:grid;
+  grid-template-columns:1fr 120px;
+  gap:20px;
+  padding:24px 0;
+  border-bottom:1px solid var(--rule);
+  cursor:pointer;
+  transition:background 0.12s;
+  align-items:start;
+}
+.news-item:hover{background:var(--bg-soft);padding-left:8px;margin-left:-8px;margin-right:-8px;padding-right:8px;}
+.news-item h3{
+  font-family:'Playfair Display',serif;
+  font-size:21px;
+  font-weight:700;
+  line-height:1.2;
+  margin:6px 0 8px;
+}
+.news-item p{font-size:14px;line-height:1.65;color:var(--muted);font-weight:300;}
+.news-item .byline{margin-top:10px;}
+.news-thumb{
+  width:120px;
+  height:90px;
+  background:var(--ocean-light);
+  border:1px solid #c8e8f5;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;
+  color:var(--ocean);
+  letter-spacing:0.08em;
+  flex-shrink:0;
+  margin-top:6px;
+}
+
+/* ── WRITERS PAGE ── */
+.writers-wrap{max-width:1000px;margin:0 auto;padding:32px 24px;}
+.writers-wrap h2{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;margin-bottom:6px;}
+.writers-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:20px;
+  margin-top:28px;
+}
+.writer-card{
+  border:1px solid var(--rule);
+  padding:24px;
+  cursor:pointer;
+  transition:border-color 0.15s,box-shadow 0.15s;
+  position:relative;
+  overflow:hidden;
+}
+.writer-card::before{
+  content:'';
+  position:absolute;
+  top:0;left:0;right:0;
+  height:3px;
+  background:linear-gradient(90deg,var(--ocean),var(--wave));
+  transform:scaleX(0);
+  transform-origin:left;
+  transition:transform 0.2s;
+}
+.writer-card:hover::before{transform:scaleX(1);}
+.writer-card:hover{border-color:var(--ocean);box-shadow:0 4px 20px rgba(0,119,168,0.08);}
+.writer-avatar{
+  width:56px;height:56px;border-radius:50%;
+  background:var(--ocean);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;
+  font-size:20px;font-weight:700;
+  color:white;margin-bottom:14px;
+}
+.writer-card h3{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;margin-bottom:4px;}
+.writer-beat{
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:0.12em;text-transform:uppercase;
+  color:var(--ocean);margin-bottom:12px;
+}
+.writer-bio{font-size:13px;line-height:1.65;color:var(--muted);font-weight:300;}
+.writer-articles{
+  margin-top:14px;padding-top:14px;
+  border-top:1px solid var(--rule);
+  font-family:'DM Sans',sans-serif;
+  font-size:11px;color:var(--muted);
+}
+
+/* writer profile */
+.writer-profile{max-width:800px;margin:0 auto;padding:32px 24px;}
+.back-btn{
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:500;
+  letter-spacing:0.08em;text-transform:uppercase;
+  color:var(--ocean);cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;
+  margin-bottom:24px;
+  border:none;background:none;padding:0;
+  transition:opacity 0.15s;
+}
+.back-btn:hover{opacity:0.7;}
+.profile-header{display:flex;gap:20px;align-items:flex-start;margin-bottom:28px;}
+.profile-avatar{
+  width:72px;height:72px;border-radius:50%;
+  background:var(--ocean);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Playfair Display',serif;
+  font-size:26px;font-weight:700;color:white;flex-shrink:0;
+}
+.profile-header h2{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;margin-bottom:4px;}
+.profile-articles h3{
+  font-family:'DM Sans',sans-serif;
+  font-size:10px;font-weight:600;
+  letter-spacing:0.16em;text-transform:uppercase;
+  color:var(--muted);border-bottom:1px solid var(--rule);
+  padding-bottom:8px;margin-bottom:16px;
+}
+.profile-article-item{
+  padding:16px 0;border-bottom:1px solid var(--rule);cursor:pointer;
+  transition:background 0.12s;
+}
+.profile-article-item:hover h4{color:var(--ocean);}
+.profile-article-item h4{
+  font-family:'Playfair Display',serif;
+  font-size:18px;font-weight:700;
+  margin:4px 0 6px;transition:color 0.15s;
+}
+.profile-article-item p{font-size:13px;color:var(--muted);font-weight:300;}
+
+/* ── ARTICLE PAGE ── */
+.article-wrap{max-width:720px;margin:0 auto;padding:32px 24px;}
+.article-wrap h1{
+  font-family:'Playfair Display',serif;
+  font-size:clamp(28px,4vw,40px);
+  font-weight:700;line-height:1.1;
+  letter-spacing:-0.01em;margin:10px 0 16px;
+}
+.article-img{
+  width:100%;height:280px;
+  background:var(--ocean-light);
+  border:1px solid #c8e8f5;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'DM Sans',sans-serif;font-size:11px;
+  color:var(--ocean);letter-spacing:0.1em;text-transform:uppercase;
+  margin:20px 0;position:relative;overflow:hidden;
+}
+.article-img svg{opacity:0.1;position:absolute;bottom:-10px;left:0;width:100%;}
+.article-body p{
+  font-size:18px;line-height:1.8;
+  color:var(--ink-soft);font-weight:300;
+  margin-bottom:20px;
+}
+.article-body p:first-child::first-letter{
+  font-family:'Playfair Display',serif;
+  font-size:64px;font-weight:700;
+  float:left;line-height:0.8;
+  margin:8px 10px 0 0;
+  color:var(--ocean);
+}
+
+/* ── CONTACT ── */
+.contact-wrap{max-width:600px;margin:0 auto;padding:32px 24px;}
+.contact-wrap h2{font-family:'Playfair Display',serif;font-size:32px;font-weight:700;margin-bottom:6px;}
+.contact-wrap p{font-size:16px;line-height:1.7;color:var(--muted);font-weight:300;margin-bottom:28px;}
+.form-group{margin-bottom:18px;}
+.form-group label{
+  display:block;font-family:'DM Sans',sans-serif;
+  font-size:11px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+  color:var(--ink);margin-bottom:6px;
+}
+.form-group input,
+.form-group textarea,
+.form-group select{
+  width:100%;padding:11px 14px;
+  border:1px solid var(--rule);
+  font-family:'Source Serif 4',serif;font-size:15px;
+  color:var(--ink);background:var(--bg);
+  outline:none;transition:border-color 0.15s;
+  border-radius:0;
+}
+.form-group input:focus,
+.form-group textarea:focus,
+.form-group select:focus{border-color:var(--ocean);}
+.form-group textarea{height:140px;resize:vertical;}
+.submit-btn{
+  background:var(--ocean);color:white;
+  border:none;padding:13px 32px;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;font-weight:600;
+  letter-spacing:0.1em;text-transform:uppercase;
+  cursor:pointer;transition:background 0.15s;
+  width:100%;margin-top:4px;
+}
+.submit-btn:hover{background:var(--ocean-dark);}
+.submit-success{
+  display:none;
+  background:var(--ocean-light);
+  border:1px solid var(--ocean);
+  padding:16px 20px;
+  font-family:'DM Sans',sans-serif;
+  font-size:14px;color:var(--ocean-dark);
+  text-align:center;margin-top:16px;
+}
+
+/* ── FOOTER ── */
+footer{
+  background:var(--ink);color:#aaa;
+  font-family:'DM Sans',sans-serif;
+  font-size:12px;padding:40px 24px;
+  margin-top:40px;text-align:center;
+}
+.footer-title{
+  font-family:'Playfair Display',serif;
+  font-size:28px;font-weight:900;
+  color:white;margin-bottom:6px;
+}
+.footer-ocean{
+  width:60px;height:2px;
+  background:linear-gradient(90deg,var(--ocean),var(--wave));
+  margin:12px auto;
+}
+.footer-links{margin:16px 0;}
+.footer-links a{color:#aaa;margin:0 12px;transition:color 0.15s;}
+.footer-links a:hover{color:var(--wave);}
+footer p{color:#555;margin-top:12px;font-size:11px;}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  nav .nav-links{display:none;}
+  .hamburger{display:flex;}
+  .hero-grid{grid-template-columns:1fr;}
+  .hero-main{padding-right:0;border-right:none;border-bottom:1px solid var(--rule);padding-bottom:28px;margin-bottom:28px;}
+  .hero-sidebar{padding-left:0;}
+  .bottom-grid{grid-template-columns:1fr;}
+  .bottom-card{border-right:none;border-bottom:1px solid var(--rule);}
+  .bottom-card:last-child{border-bottom:none;}
+  .news-item{grid-template-columns:1fr;}
+  .news-thumb{display:none;}
+  .writers-grid{grid-template-columns:1fr;}
+  .topbar{display:none;}
+  .masthead h1{font-size:48px;}
+}
+@media(min-width:769px){
+  nav .nav-links{display:contents;}
+  .hamburger{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <span>Carlsbad, California &nbsp;·&nbsp; Independent Student Journalism</span>
+  <div class="topbar-right">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('news')">Latest News</a>
+    <a onclick="showPage('writers')">Writers</a>
+    <a onclick="showPage('contact')">Contact</a>
+  </div>
+</div>
+
+<div class="masthead">
+  <div class="masthead-meta">Est. 2025 &nbsp;·&nbsp; Carlsbad, California</div>
+  <h1>Carlsbad Currents</h1>
+  <div class="masthead-sub">
+    <span></span>
+    Independent &nbsp;·&nbsp; Student-Run &nbsp;·&nbsp; Weekly
+    <span></span>
+  </div>
+</div>
+
+<div class="nav-wrap">
+  <nav>
+    <div class="nav-links" style="display:contents;">
+      <a onclick="showPage('home')" class="active" id="nav-home">Home</a>
+      <a onclick="showPage('news')" id="nav-news">Latest News</a>
+      <a onclick="showPage('writers')" id="nav-writers">Writers</a>
+      <a onclick="showPage('contact')" id="nav-contact">Contact</a>
+    </div>
+    <div class="hamburger" onclick="toggleMenu()" id="hamburger">
+      <span></span><span></span><span></span>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <a onclick="showPage('home');toggleMenu()">Home</a>
+    <a onclick="showPage('news');toggleMenu()">Latest News</a>
+    <a onclick="showPage('writers');toggleMenu()">Writers</a>
+    <a onclick="showPage('contact');toggleMenu()">Contact</a>
+  </div>
+</div>
+
+<!-- ══ HOME ══ -->
+<div class="page active" id="page-home">
+<div class="home-wrap">
+
+  <div class="hero-grid">
+    <div class="hero-main">
+      <div class="section-label">Business</div>
+      <h2>How <em>AI is Reshaping</em> Small Businesses Along Carlsbad Village Drive</h2>
+      <div class="hero-img">
+        <svg viewBox="0 0 800 120" preserveAspectRatio="none"><path d="M0,60 C100,20 200,100 300,60 C400,20 500,100 600,60 C700,20 800,60 800,60 L800,120 L0,120 Z" fill="#0077a8"/><path d="M0,80 C150,40 250,110 400,70 C550,30 650,100 800,70 L800,120 L0,120 Z" fill="#00a8c6" opacity="0.5"/></svg>
+        [ Feature Photo ]
+      </div>
+      <p>From automated inventory systems to AI-powered customer service, Carlsbad's independent business owners are navigating a new technological wave — and the results are more complicated than the headlines suggest.</p>
+      <div class="byline">By <strong>Quinton</strong> &nbsp;·&nbsp; Business &nbsp;·&nbsp; June 12, 2025</div>
+      <a class="read-more" onclick="showArticle('a1')">Continue Reading →</a>
+    </div>
+    <div class="hero-sidebar">
+      <div class="sidebar-label">Also This Week</div>
+      <div class="sidebar-story">
+        <div class="section-label">Sports</div>
+        <h3 onclick="showArticle('a2')">Carlsbad High's Water Polo Team Makes a Historic Run to State Finals</h3>
+        <p>First appearance in the state championship in over a decade has the whole city watching.</p>
+        <div class="byline">By <strong>Jun</strong> &nbsp;·&nbsp; 4 min read</div>
+      </div>
+      <div class="sidebar-story">
+        <div class="section-label">Politics</div>
+        <h3 onclick="showArticle('a3')">Carlsbad City Council Eyes New Coastal Development Rules</h3>
+        <p>A contentious proposal to rezone beachside land is dividing residents and developers alike.</p>
+        <div class="byline">By <strong>Emily</strong> &nbsp;·&nbsp; 5 min read</div>
+      </div>
+      <div class="sidebar-story">
+        <div class="section-label">Medicine</div>
+        <h3 onclick="showArticle('a4')">Why Carlsbad Teens Are Sleeping Less Than Ever — And What It's Doing to Their Health</h3>
+        <p>A new study out of UCSD reveals alarming sleep trends among San Diego County high schoolers.</p>
+        <div class="byline">By <strong>Bob</strong> &nbsp;·&nbsp; 3 min read</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="bottom-grid">
+    <div class="bottom-card" onclick="showArticle('a5')">
+      <div class="section-label">Law</div>
+      <h3>What the New California Tenant Protection Law Actually Means for Carlsbad Renters</h3>
+      <p>A breakdown of the legislation that local landlords and tenants are scrambling to understand before it takes effect.</p>
+      <div class="byline">By <strong>Joe</strong> &nbsp;·&nbsp; June 11, 2025</div>
+    </div>
+    <div class="bottom-card" onclick="showArticle('a2')">
+      <div class="section-label">Sports</div>
+      <h3>The Unsung Freshmen Driving Carlsbad's Surprise Football Season</h3>
+      <p>Three first-year players are quietly becoming the backbone of a team nobody saw coming this year.</p>
+      <div class="byline">By <strong>Jun</strong> &nbsp;·&nbsp; June 10, 2025</div>
+    </div>
+    <div class="bottom-card" onclick="showArticle('a4')">
+      <div class="section-label">Medicine</div>
+      <h3>Carlsbad's New Community Health Clinic Opens Its Doors — Here's What to Know</h3>
+      <p>The long-awaited facility on Cannon Road is now accepting patients, offering sliding-scale fees and same-day appointments.</p>
+      <div class="byline">By <strong>Bob</strong> &nbsp;·&nbsp; June 9, 2025</div>
+    </div>
+  </div>
+
+</div>
+</div>
+
+<!-- ══ LATEST NEWS ══ -->
+<div class="page" id="page-news">
+<div class="news-wrap">
+  <div class="section-label">All Stories</div>
+  <h2>Latest News</h2>
+  <hr class="page-rule">
+  <div class="news-list">
+
+    <div class="news-item" onclick="showArticle('a1')">
+      <div>
+        <div class="section-label">Business</div>
+        <h3>How AI is Reshaping Small Businesses Along Carlsbad Village Drive</h3>
+        <p>From automated inventory systems to AI-powered customer service, Carlsbad's independent business owners are navigating a new technological wave.</p>
+        <div class="byline">By <strong>Quinton</strong> &nbsp;·&nbsp; June 12, 2025 &nbsp;·&nbsp; 6 min read</div>
+      </div>
+      <div class="news-thumb">[ Photo ]</div>
+    </div>
+
+    <div class="news-item" onclick="showArticle('a2')">
+      <div>
+        <div class="section-label">Sports</div>
+        <h3>Carlsbad High's Water Polo Team Makes a Historic Run to State Finals</h3>
+        <p>First appearance in the state championship in over a decade has the whole city watching and the team playing their best ball of the season.</p>
+        <div class="byline">By <strong>Jun</strong> &nbsp;·&nbsp; June 11, 2025 &nbsp;·&nbsp; 4 min read</div>
+      </div>
+      <div class="news-thumb">[ Photo ]</div>
+    </div>
+
+    <div class="news-item" onclick="showArticle('a3')">
+      <div>
+        <div class="section-label">Politics</div>
+        <h3>Carlsbad City Council Eyes New Coastal Development Rules</h3>
+        <p>A contentious proposal to rezone beachside land is dividing residents and developers alike ahead of next month's vote.</p>
+        <div class="byline">By <strong>Emily</strong> &nbsp;·&nbsp; June 11, 2025 &nbsp;·&nbsp; 5 min read</div>
+      </div>
+      <div class="news-thumb">[ Photo ]</div>
+    </div>
+
+    <div class="news-item" onclick="showArticle('a4')">
+      <div>
+        <div class="section-label">Medicine</div>
+        <h3>Why Carlsbad Teens Are Sleeping Less Than Ever — And What It's Doing to Their Health</h3>
+        <p>A new study out of UCSD reveals alarming sleep trends among San Diego County high schoolers, with screen time only part of the story.</p>
+        <div class="byline">By <strong>Bob</strong> &nbsp;·&nbsp; June 10, 2025 &nbsp;·&nbsp; 3 min read</div>
+      </div>
+      <div class="news-thumb">[ Photo ]</div>
+    </div>
+
+    <div class="news-item" onclick="showArticle('a5')">
+      <div>
+        <div class="section-label">Law</div>
+        <h3>What the New California Tenant Protection Law Actually Means for Carlsbad Renters</h3>
+        <p>A plain-language breakdown of the legislation that local landlords and tenants are scrambling to understand.</p>
+        <div class="byline">By <strong>Joe</strong> &nbsp;·&nbsp; June 9, 2025 &nbsp;·&nbsp; 7 min read</div>
+      </div>
+      <div class="news-thumb">[ Photo ]</div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══ WRITERS ══ -->
+<div class="page" id="page-writers">
+<div class="writers-wrap">
+  <div class="section-label">The Team</div>
+  <h2>Our Writers</h2>
+  <hr class="page-rule">
+  <div class="writers-grid">
+
+    <div class="writer-card" onclick="showWriter('quinton')">
+      <div class="writer-avatar">Q</div>
+      <h3>Quinton</h3>
+      <div class="writer-beat">Business</div>
+      <p class="writer-bio">Quinton covers the Carlsbad business community — from startups along the coast to the economics shaping everyday life in North County San Diego.</p>
+      <div class="writer-articles">3 articles published</div>
+    </div>
+
+    <div class="writer-card" onclick="showWriter('jun')">
+      <div class="writer-avatar">J</div>
+      <h3>Jun</h3>
+      <div class="writer-beat">Sports</div>
+      <p class="writer-bio">Jun reports on Carlsbad's vibrant sports scene — from high school varsity teams to the recreational leagues that bring the community together year-round.</p>
+      <div class="writer-articles">4 articles published</div>
+    </div>
+
+    <div class="writer-card" onclick="showWriter('emily')">
+      <div class="writer-avatar">E</div>
+      <h3>Emily</h3>
+      <div class="writer-beat">Politics</div>
+      <p class="writer-bio">Emily follows city hall, local elections, and the policy decisions that shape Carlsbad's future — cutting through the jargon so residents can stay informed.</p>
+      <div class="writer-articles">5 articles published</div>
+    </div>
+
+    <div class="writer-card" onclick="showWriter('bob')">
+      <div class="writer-avatar">B</div>
+      <h3>Bob</h3>
+      <div class="writer-beat">Medicine & Health</div>
+      <p class="writer-bio">Bob covers public health, medical research, and wellness trends affecting Carlsbad residents — with a focus on making complex science accessible to everyone.</p>
+      <div class="writer-articles">3 articles published</div>
+    </div>
+
+    <div class="writer-card" onclick="showWriter('joe')">
+      <div class="writer-avatar">J</div>
+      <h3>Joe</h3>
+      <div class="writer-beat">Law & Justice</div>
+      <p class="writer-bio">Joe breaks down California law and local legal matters — explaining what new legislation means for ordinary Carlsbad residents, renters, and small business owners.</p>
+      <div class="writer-articles">2 articles published</div>
+    </div>
+
+  </div>
+</div>
+</div>
+
+<!-- ══ WRITER PROFILE ══ -->
+<div class="page" id="page-writer-profile">
+<div class="writer-profile">
+  <button class="back-btn" onclick="showPage('writers')">← Back to Writers</button>
+  <div class="profile-header">
+    <div class="profile-avatar" id="profile-avatar">Q</div>
+    <div>
+      <div class="section-label" id="profile-beat">Business</div>
+      <h2 id="profile-name">Quinton</h2>
+      <p style="font-size:14px;color:var(--muted);font-weight:300;margin-top:6px;" id="profile-bio">Bio here.</p>
+    </div>
+  </div>
+  <hr class="page-rule">
+  <div class="profile-articles">
+    <h3>Articles</h3>
+    <div id="profile-articles-list"></div>
+  </div>
+</div>
+</div>
+
+<!-- ══ ARTICLE ══ -->
+<div class="page" id="page-article">
+<div class="article-wrap">
+  <button class="back-btn" onclick="goBack()" id="article-back">← Back</button>
+  <div class="section-label" id="article-beat">Business</div>
+  <h1 id="article-title">Article Title</h1>
+  <div class="byline" id="article-byline" style="margin-bottom:4px;"></div>
+  <hr class="ocean-rule" style="margin:16px 0;">
+  <div class="article-img">
+    <svg viewBox="0 0 800 120" preserveAspectRatio="none"><path d="M0,60 C100,20 200,100 300,60 C400,20 500,100 600,60 C700,20 800,60 800,60 L800,120 L0,120 Z" fill="#0077a8"/><path d="M0,80 C150,40 250,110 400,70 C550,30 650,100 800,70 L800,120 L0,120 Z" fill="#00a8c6" opacity="0.5"/></svg>
+    [ Photo ]
+  </div>
+  <div class="article-body" id="article-body"></div>
+</div>
+</div>
+
+<!-- ══ CONTACT ══ -->
+<div class="page" id="page-contact">
+<div class="contact-wrap">
+  <div class="section-label">Get in Touch</div>
+  <h2>Contact Us</h2>
+  <hr class="page-rule">
+  <p>Have a tip, a story idea, or want to join the team? We'd love to hear from you. Carlsbad Currents is always looking for passionate student writers.</p>
+
+  <div class="form-group">
+    <label>Your Name</label>
+    <input type="text" placeholder="Jane Smith">
+  </div>
+  <div class="form-group">
+    <label>Email Address</label>
+    <input type="email" placeholder="jane@example.com">
+  </div>
+  <div class="form-group">
+    <label>Subject</label>
+    <select>
+      <option>Story Tip</option>
+      <option>Join the Team</option>
+      <option>General Inquiry</option>
+      <option>Other</option>
+    </select>
+  </div>
+  <div class="form-group">
+    <label>Message</label>
+    <textarea placeholder="Tell us what's on your mind..."></textarea>
+  </div>
+  <button class="submit-btn" onclick="submitForm()">Send Message</button>
+  <div class="submit-success" id="submit-success">
+    Thanks for reaching out! We'll get back to you within 48 hours.
+  </div>
+</div>
+</div>
+
+<footer>
+  <div class="footer-title">Carlsbad Currents</div>
+  <div class="footer-ocean"></div>
+  <p style="color:#888;font-size:13px;">Independent student journalism from Carlsbad, California.</p>
+  <div class="footer-links">
+    <a onclick="showPage('home')">Home</a>
+    <a onclick="showPage('news')">Latest News</a>
+    <a onclick="showPage('writers')">Writers</a>
+    <a onclick="showPage('contact')">Contact</a>
+  </div>
+  <p>© 2025 Carlsbad Currents &nbsp;·&nbsp; The Editors &nbsp;·&nbsp; All rights reserved</p>
+</footer>
+
+<script>
+const articles={
+  a1:{beat:'Business',title:'How AI is Reshaping Small Businesses Along Carlsbad Village Drive',author:'Quinton',date:'June 12, 2025',body:`<p>Walk down Carlsbad Village Drive on a Tuesday afternoon and you'll find the usual mix: surf shops, coffee spots, boutique clothing stores. But behind the counters, something is quietly changing. Several small business owners have begun integrating AI tools into their daily operations — and the results are revealing as much about the limits of technology as its promise.</p><p>"I was skeptical at first," says Maria Delgado, who runs a small home goods store on the main strip. She began using an AI inventory management tool last fall. "It saves me maybe two hours a week on reordering. But it got my seasonal items completely wrong around the holidays."</p><p>That kind of mixed experience is common. AI tools are genuinely useful for repetitive back-office tasks — scheduling, inventory tracking, drafting routine emails — but small business owners in Carlsbad are learning that they require significant oversight and customization before delivering real value.</p><p>For Joe Tanaka, who owns a surf rental shop near Tamarack Beach, the biggest win has been customer communication. An AI chatbot handles basic rental inquiries overnight, freeing him from his phone during family dinners. "I get twelve to fifteen messages a day asking the same five questions," he says. "The bot handles all of those. I only step in when it's something real."</p><p>The broader story here is less about AI replacing workers and more about small business owners figuring out, on the fly, which parts of their operations are actually automatable — and which require the human judgment that no tool can replicate yet.</p>`},
+  a2:{beat:'Sports',title:"Carlsbad High's Water Polo Team Makes a Historic Run to State Finals",author:'Jun',date:'June 11, 2025',body:`<p>For the first time in eleven years, the Carlsbad High School water polo team is headed to the state finals. The Lancers clinched their spot with a 9-7 victory over rival La Costa Canyon on Saturday, a win that sent students rushing the pool deck in a scene the school hasn't witnessed in over a decade.</p><p>"We've been building toward this all year," said head coach Dave Merritt, who is in his third season with the program. "These kids believed before anyone else did."</p><p>The team's success this season has been built around an unusually deep roster. Senior captain Nate Flores leads the team in goals, but the contributions have been spread across twelve players — a sign of a program that has developed real depth.</p><p>Junior goalkeeper Priya Nair has been particularly impressive in the playoffs, posting a save percentage that ranks among the best in the state for her class. "She's the reason we're still in this," Flores said after Saturday's win.</p><p>The state finals take place next Saturday in Fresno. Carlsbad will face the top seed from Northern California, a matchup that looks daunting on paper but that the Lancers are treating as an opportunity rather than an obstacle.</p>`},
+  a3:{beat:'Politics',title:'Carlsbad City Council Eyes New Coastal Development Rules',author:'Emily',date:'June 11, 2025',body:`<p>A proposal before the Carlsbad City Council would significantly tighten restrictions on beachside development, limiting the height and footprint of new construction within a quarter mile of the coastline. The measure has divided the community sharply along lines that don't map neatly onto party affiliation.</p><p>Supporters argue that Carlsbad's coastline is one of its defining assets — and that unchecked development threatens both the environment and the character of the city. "We're not anti-growth," said council member Sarah Chen, who co-sponsored the proposal. "We're pro-smart growth."</p><p>Opponents, including several local developers and the Carlsbad Chamber of Commerce, counter that the restrictions would drive up housing costs and push development further inland, creating problems elsewhere in the region. "You can't solve affordability by making the most desirable land off-limits," said Marcus Webb, a local contractor who spoke at Tuesday's public hearing.</p><p>The proposal is scheduled for a full council vote next month. Advocacy groups on both sides are mobilizing residents ahead of what promises to be a contentious public hearing process.</p>`},
+  a4:{beat:'Medicine',title:"Why Carlsbad Teens Are Sleeping Less Than Ever",author:'Bob',date:'June 10, 2025',body:`<p>A new study from UC San Diego's Sleep and Chronobiology Lab, surveying over 800 high school students across San Diego County, found that the average teenager is now getting fewer than six hours of sleep per night on school days — well below the eight to ten hours recommended by the American Academy of Pediatrics.</p><p>Screen time is part of the story, but researchers say the picture is more complicated than the standard phone-before-bed narrative. Early school start times, academic pressure, after-school activities, and part-time jobs all contribute to what the study's lead author calls "a structural sleep deficit" that is built into the architecture of American adolescent life.</p><p>"We're asking teenagers to function on adult schedules before their brains are ready," said Dr. Anita Sharma, who led the research. "And then we're surprised when we see increases in anxiety, depression, and academic underperformance."</p><p>For Carlsbad specifically, the data shows that students at schools with later start times — even by as little as thirty minutes — reported significantly better sleep and lower rates of reported anxiety. The findings add local weight to a growing national movement to push high school start times later.</p>`},
+  a5:{beat:'Law',title:'What the New California Tenant Protection Law Actually Means for Carlsbad Renters',author:'Joe',date:'June 9, 2025',body:`<p>California's latest tenant protection legislation, signed into law last month, extends rent increase caps and strengthens eviction protections for renters in cities like Carlsbad — but understanding exactly what it means in practice requires wading through significant complexity.</p><p>Here is what renters in Carlsbad need to know. First, the law caps annual rent increases at 5% plus local inflation, with a maximum of 10% regardless of inflation. This applies to most rental units built before 2005, with some exceptions for single-family homes and condominiums where the owner has provided specific written notice.</p><p>Second, landlords must now provide "just cause" for any eviction — meaning they can no longer terminate a tenancy without a legitimate reason after a tenant has lived in a unit for more than twelve months. Legitimate reasons include nonpayment of rent, lease violations, and owner move-ins, among others.</p><p>Third, and perhaps most importantly, tenants who are evicted for reasons like owner move-ins are now entitled to relocation assistance equal to one month's rent. This is a significant change that advocates say will deter bad-faith evictions.</p><p>If you believe your landlord is violating these provisions, the first step is to contact the California Department of Consumer Affairs or a local tenant rights organization. Legal aid is available at no cost for qualifying Carlsbad residents.</p>`}
+};
+
+const writers={
+  quinton:{name:'Quinton',initial:'Q',beat:'Business',bio:'Quinton covers the Carlsbad business community — from startups along the coast to the economics shaping everyday life in North County San Diego.',articles:['a1']},
+  jun:{name:'Jun',initial:'J',beat:'Sports',bio:"Jun reports on Carlsbad's vibrant sports scene — from high school varsity teams to the recreational leagues that bring the community together year-round.",articles:['a2']},
+  emily:{name:'Emily',initial:'E',beat:'Politics',bio:"Emily follows city hall, local elections, and the policy decisions that shape Carlsbad's future.",articles:['a3']},
+  bob:{name:'Bob',initial:'B',beat:'Medicine & Health',bio:'Bob covers public health, medical research, and wellness trends affecting Carlsbad residents.',articles:['a4']},
+  joe:{name:'Joe',initial:'J',beat:'Law & Justice',bio:'Joe breaks down California law and local legal matters for ordinary Carlsbad residents.',articles:['a5']}
+};
+
+let prevPage='home';
+let currentPage='home';
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('#page-'+id).forEach(p=>p.classList.add('active'));
+  document.querySelectorAll('nav a, .mobile-menu a').forEach(a=>a.classList.remove('active'));
+  const navEl=document.getElementById('nav-'+id);
+  if(navEl)navEl.classList.add('active');
+  prevPage=currentPage;
+  currentPage=id;
+  window.scrollTo(0,0);
+}
+
+function showArticle(id){
+  const a=articles[id];
+  if(!a)return;
+  document.getElementById('article-beat').textContent=a.beat;
+  document.getElementById('article-title').textContent=a.title;
+  document.getElementById('article-byline').innerHTML='By <strong style="color:var(--ocean)">'+a.author+'</strong> &nbsp;·&nbsp; '+a.date;
+  document.getElementById('article-body').innerHTML=a.body;
+  prevPage=currentPage;
+  currentPage='article';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-article').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function showWriter(id){
+  const w=writers[id];
+  if(!w)return;
+  document.getElementById('profile-avatar').textContent=w.initial;
+  document.getElementById('profile-name').textContent=w.name;
+  document.getElementById('profile-beat').textContent=w.beat;
+  document.getElementById('profile-bio').textContent=w.bio;
+  const list=document.getElementById('profile-articles-list');
+  list.innerHTML='';
+  w.articles.forEach(aid=>{
+    const a=articles[aid];
+    if(!a)return;
+    const div=document.createElement('div');
+    div.className='profile-article-item';
+    div.innerHTML='<div class="section-label">'+a.beat+'</div><h4>'+a.title+'</h4><p class="byline">'+a.date+'</p>';
+    div.onclick=()=>showArticle(aid);
+    list.appendChild(div);
+  });
+  prevPage=currentPage;
+  currentPage='writer-profile';
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-writer-profile').classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function goBack(){
+  showPage(prevPage==='article'?'home':prevPage);
+}
+
+function toggleMenu(){
+  const m=document.getElementById('mobile-menu');
+  m.classList.toggle('open');
+}
+
+function submitForm(){
+  document.getElementById('submit-success').style.display='block';
+}
+</script>
+</body>
+</html>
