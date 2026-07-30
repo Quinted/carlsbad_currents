@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Draft Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-void:#0A0C10;
+    --bg-panel:#141922;
+    --bg-panel-raised:#1C232E;
+    --line:#2A323D;
+    --line-soft:#232B36;
+    --text-primary:#F4F6F8;
+    --text-dim:#8A93A0;
+    --text-faint:#4E5763;
+    --accent-clock:#FF4B3E;
+    --accent-drafted:#2FD675;
+    --accent-gold:#2FE0C7;
+    --accent-gold-ink:#062825;
+
+    --pos-qb-fill:#FF5A4E;   --pos-qb-ink:#3D0A05;
+    --pos-rb-fill:#22D97A;   --pos-rb-ink:#032B18;
+    --pos-wr-fill:#3E9CFF;   --pos-wr-ink:#04203D;
+    --pos-te-fill:#FFB020;   --pos-te-ink:#3A2400;
+    --pos-k-fill:#B57BFF;    --pos-k-ink:#22093F;
+    --pos-dst-fill:#FF6FC2;  --pos-dst-ink:#3D0A26;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;height:100%;background:var(--bg-void);color:var(--text-primary);font-family:'Inter',sans-serif;overflow:hidden;}
+  ::selection{background:var(--accent-gold);color:#000;}
+  .display{font-family:'Anton',sans-serif;letter-spacing:0.02em;text-transform:uppercase;}
+
+  #setup-screen{
+    height:100vh;width:100vw;overflow-y:auto;
+    display:flex;align-items:center;justify-content:center;
+    padding:40px 20px;
+  }
+  .setup-card{
+    width:100%;max-width:720px;background:var(--bg-panel);
+    border:1px solid var(--line);border-radius:16px;padding:40px 44px 44px;
+  }
+  .setup-eyebrow{color:var(--accent-gold);font-size:13px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;margin:0 0 6px;}
+  .setup-title{font-size:40px;line-height:1;margin:0 0 28px;}
+  .field-row{display:flex;gap:16px;margin-bottom:20px;}
+  .field{flex:1;}
+  .field label{display:block;font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px;}
+  input[type="text"], input[type="number"], select{
+    width:100%;background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-primary);
+    padding:12px 14px;border-radius:8px;font-size:16px;font-family:'Inter',sans-serif;outline:none;
+  }
+  input:focus, select:focus{border-color:var(--accent-gold);}
+  .snake-toggle{display:flex;align-items:center;gap:10px;background:var(--bg-panel-raised);border:1px solid var(--line);border-radius:8px;padding:12px 14px;cursor:pointer;user-select:none;}
+  .snake-toggle input{width:18px;height:18px;accent-color:var(--accent-gold);}
+  .teams-label{font-size:12px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);margin:28px 0 12px;}
+  .teams-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .team-input-row{display:flex;align-items:center;gap:10px;background:var(--bg-panel-raised);border:1px solid var(--line);border-radius:8px;padding:6px 6px 6px 14px;}
+  .team-input-row .pick-num{font-family:'Anton',sans-serif;color:var(--accent-gold);font-size:18px;width:22px;flex-shrink:0;}
+  .team-input-row input{border:none;background:transparent;padding:8px 4px;}
+  .team-input-row input:focus{border:none;}
+  .start-btn{
+    width:100%;margin-top:32px;padding:16px;border:none;border-radius:10px;
+    background:var(--accent-clock);color:#fff;font-family:'Anton',sans-serif;
+    font-size:22px;letter-spacing:0.04em;cursor:pointer;text-transform:uppercase;
+  }
+  .start-btn:hover{background:#ff5f53;}
+  .resume-bar{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--bg-panel-raised);border:1px solid var(--accent-gold);border-radius:10px;
+    padding:14px 18px;margin-bottom:24px;
+  }
+  .resume-bar span{font-size:14px;color:var(--text-primary);}
+  .resume-bar .btns{display:flex;gap:8px;flex-shrink:0;}
+  .ghost-btn{background:transparent;border:1px solid var(--line);color:var(--text-primary);padding:8px 14px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer;}
+  .ghost-btn:hover{border-color:var(--text-dim);}
+  .gold-btn{background:var(--accent-gold);border:none;color:var(--accent-gold-ink);padding:8px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;}
+  .setup-hint{color:var(--text-faint);font-size:12px;margin-top:8px;line-height:1.5;}
+
+  #board-screen{height:100vh;width:100vw;display:none;flex-direction:column;}
+
+  .clock-bar{
+    flex-shrink:0;background:linear-gradient(180deg,#1a1015,#0f0a0d);
+    border-bottom:2px solid var(--accent-clock);
+    padding:16px 32px;display:flex;align-items:center;justify-content:space-between;gap:24px;
+  }
+  .clock-left{display:flex;align-items:center;gap:16px;}
+  .live-dot{width:12px;height:12px;border-radius:50%;background:var(--accent-clock);animation:pulse 1.4s infinite;flex-shrink:0;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.35;}}
+  @media (prefers-reduced-motion: reduce){.live-dot{animation:none;}}
+  .clock-label{font-size:13px;font-weight:700;letter-spacing:0.2em;color:var(--accent-clock);}
+  .clock-team{font-family:'Anton',sans-serif;font-size:40px;line-height:1;color:var(--text-primary);}
+  .clock-right{display:flex;align-items:center;gap:24px;}
+  .clock-stat{text-align:right;}
+  .clock-stat .num{font-family:'Anton',sans-serif;font-size:32px;color:var(--accent-gold);line-height:1;}
+  .clock-stat .lbl{font-size:11px;color:var(--text-dim);letter-spacing:0.12em;text-transform:uppercase;margin-top:2px;}
+  .icon-btn{background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-dim);width:38px;height:38px;border-radius:8px;cursor:pointer;font-size:15px;display:flex;align-items:center;justify-content:center;}
+  .icon-btn:hover{color:var(--text-primary);border-color:var(--text-dim);}
+
+  .board-wrap{flex:1;overflow:auto;padding:14px 20px 0;}
+  .board-grid{display:grid;width:100%;min-width:1200px;}
+
+  .col-header{
+    position:sticky;top:0;z-index:2;background:var(--bg-void);
+    padding:0 4px 10px;text-align:center;
+  }
+  .col-header .team-name{
+    font-family:'Anton',sans-serif;font-size:15px;color:var(--text-primary);
+    background:var(--bg-panel-raised);border:1px solid var(--line);border-radius:8px;
+    padding:10px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    border-bottom:3px solid var(--line);
+  }
+  .col-header.active .team-name{border-bottom:3px solid var(--accent-clock);color:var(--accent-gold);background:#1e1420;}
+
+  .round-label{
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Anton',sans-serif;color:var(--text-faint);font-size:12px;
+    padding:2px 0;
+  }
+  .cell{
+    border-radius:6px;min-height:56px;padding:5px 7px;position:relative;
+    display:flex;align-items:center;gap:7px;margin:2px;
+    border:1px solid transparent;overflow:hidden;
+  }
+  .cell.empty{align-items:center;justify-content:center;background:var(--bg-panel);border:1px solid var(--line-soft);}
+  .cell.empty .pick-tag{font-family:'Anton',sans-serif;color:var(--text-faint);font-size:12px;}
+  .cell.current{background:#221217;border:1px solid var(--accent-clock);box-shadow:0 0 0 1px var(--accent-clock) inset;}
+  .cell.current .pick-tag{color:var(--accent-clock);}
+  .cell.just-drafted{animation:flashin 0.5s ease;}
+  @keyframes flashin{0%{filter:brightness(1.6);}100%{filter:brightness(1);}}
+  @media (prefers-reduced-motion: reduce){.cell.just-drafted{animation:none;}}
+
+  .avatar-initials{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-family:'Anton',sans-serif;font-size:12px;background:rgba(0,0,0,0.2);}
+  .cell-info{min-width:0;flex:1;}
+  .cell-player{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.15;}
+  .cell-meta{font-size:10px;font-weight:700;opacity:0.8;margin-top:1px;text-transform:uppercase;letter-spacing:0.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .cell-rank{position:absolute;bottom:3px;left:6px;font-family:'Anton',sans-serif;font-size:9px;opacity:0.55;}
+
+  .entry-bar{
+    flex-shrink:0;background:var(--bg-panel);border-top:1px solid var(--line);
+    padding:14px 32px 18px;display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;
+  }
+  .entry-field{display:flex;flex-direction:column;gap:6px;}
+  .entry-field label{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-dim);}
+  .entry-field input, .entry-field select{padding:11px 12px;font-size:15px;}
+  #f-name{width:240px;}
+  #f-pos{width:90px;}
+  #f-nfl{width:90px;}
+  #f-photo{width:150px;}
+  .name-hint{font-size:11px;color:var(--accent-gold);min-height:14px;margin-top:2px;}
+  .photo-row{display:flex;align-items:center;gap:8px;}
+  .upload-btn{background:var(--bg-panel-raised);border:1px solid var(--line);color:var(--text-primary);padding:11px 12px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;}
+  .upload-btn:hover{border-color:var(--accent-gold);color:var(--accent-gold);}
+  .photo-preview{width:38px;height:38px;border-radius:8px;object-fit:cover;flex-shrink:0;display:none;background:var(--bg-panel-raised);}
+  .photo-preview.show{display:block;}
+  .photo-clear{display:none;background:transparent;border:none;color:var(--text-faint);font-size:18px;cursor:pointer;line-height:1;padding:0 4px;}
+  .photo-clear.show{display:block;}
+  .draft-btn{
+    background:var(--accent-drafted);border:none;color:#06210f;font-weight:800;
+    font-size:15px;padding:12px 26px;border-radius:8px;cursor:pointer;height:44px;
+  }
+  .draft-btn:hover{background:#4de88f;}
+  .entry-spacer{flex:1;}
+
+  .done-banner{
+    display:none;align-items:center;justify-content:center;flex-direction:column;gap:8px;
+    padding:14px;text-align:center;
+  }
+  .done-banner .display{font-size:28px;color:var(--accent-gold);}
+
+  ::-webkit-scrollbar{height:10px;width:10px;}
+  ::-webkit-scrollbar-track{background:var(--bg-void);}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:6px;}
+</style>
+</head>
+<body>
+
+<div id="setup-screen">
+  <div class="setup-card">
+    <div id="resume-slot"></div>
+    <p class="setup-eyebrow">Fantasy football</p>
+    <h1 class="setup-title display">Live draft board</h1>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="league-name">League name</label>
+        <input type="text" id="league-name" placeholder="e.g. The League of Extraordinary Gentlemen" />
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label for="rounds">Rounds</label>
+        <input type="number" id="rounds" value="15" min="1" max="30" />
+      </div>
+      <div class="field">
+        <label>&nbsp;</label>
+        <label class="snake-toggle"><input type="checkbox" id="snake" checked /> Snake draft (order reverses each round)</label>
+      </div>
+    </div>
+
+    <div class="teams-label">Draft order &mdash; team 1 picks first</div>
+    <div class="teams-grid" id="teams-grid"></div>
+    <p class="setup-hint">Tip: type names in the exact order you draw for. Autocomplete during the draft is pre-loaded with a 350-player 2026 rankings cheat sheet.</p>
+
+    <button class="start-btn display" id="start-btn">Start draft &rarr;</button>
+  </div>
+</div>
+
+<div id="board-screen">
+  <div class="clock-bar">
+    <div class="clock-left">
+      <div class="live-dot"></div>
+      <div>
+        <div class="clock-label" id="clock-label">ON THE CLOCK</div>
+        <div class="clock-team display" id="clock-team">&mdash;</div>
+      </div>
+    </div>
+    <div class="clock-right">
+      <div class="clock-stat">
+        <div class="num" id="stat-pick">1.01</div>
+        <div class="lbl">Round.Pick</div>
+      </div>
+      <div class="clock-stat">
+        <div class="num" id="stat-overall">1</div>
+        <div class="lbl">Overall</div>
+      </div>
+      <button class="icon-btn" id="fullscreen-btn" title="Fullscreen">&#x26F6;</button>
+      <button class="icon-btn" id="setup-btn" title="Edit setup">&#9881;</button>
+    </div>
+  </div>
+
+  <div class="board-wrap">
+    <div id="board-grid" class="board-grid"></div>
+    <div class="done-banner" id="done-banner">
+      <div class="display">Draft complete</div>
+      <div style="color:var(--text-dim);font-size:14px;">Every roster is locked in. Good luck this season.</div>
+    </div>
+  </div>
+
+  <div class="entry-bar" id="entry-bar">
+    <div class="entry-field">
+      <label for="f-name">Player</label>
+      <input type="text" id="f-name" placeholder="Start typing a name..." list="player-list" autocomplete="off" />
+      <datalist id="player-list"></datalist>
+      <div class="name-hint" id="name-hint"></div>
+    </div>
+    <div class="entry-field">
+      <label for="f-pos">Position</label>
+      <select id="f-pos">
+        <option value="QB">QB</option>
+        <option value="RB">RB</option>
+        <option value="WR">WR</option>
+        <option value="TE">TE</option>
+        <option value="K">K</option>
+        <option value="DST">DST</option>
+      </select>
+    </div>
+    <div class="entry-field">
+      <label for="f-nfl">NFL team</label>
+      <input type="text" id="f-nfl" placeholder="e.g. CIN" maxlength="4" />
+    </div>
+    <div class="entry-field">
+      <label for="f-photo">Photo (optional)</label>
+      <div class="photo-row">
+        <button type="button" class="upload-btn" id="upload-btn">Upload photo</button>
+        <input type="file" id="f-photo-file" accept="image/*" style="display:none;" />
+        <input type="text" id="f-photo" placeholder="...or paste an image link" />
+        <img class="photo-preview" id="photo-preview" alt="" />
+        <button type="button" class="photo-clear" id="photo-clear" title="Remove photo">&times;</button>
+      </div>
+    </div>
+    <button class="draft-btn" id="draft-btn">Draft player</button>
+    <div class="entry-spacer"></div>
+    <button class="ghost-btn" id="undo-btn">Undo last pick</button>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  var POS_FILL = {QB:'var(--pos-qb-fill)', RB:'var(--pos-rb-fill)', WR:'var(--pos-wr-fill)', TE:'var(--pos-te-fill)', K:'var(--pos-k-fill)', DST:'var(--pos-dst-fill)'};
+  var POS_INK  = {QB:'var(--pos-qb-ink)',  RB:'var(--pos-rb-ink)',  WR:'var(--pos-wr-ink)',  TE:'var(--pos-te-ink)',  K:'var(--pos-k-ink)',  DST:'var(--pos-dst-ink)'};
+
+  // 2026 fantasy football cheat sheet, overall rankings 1-350 (user-supplied).
+  // [name, pos, team]
+  var CHEATSHEET = [
+    ["Jahmyr Gibbs","RB","DET"],
+    ["Bijan Robinson","RB","ATL"],
+    ["Ja'Marr Chase","WR","CIN"],
+    ["Puka Nacua","WR","LAR"],
+    ["Jaxon Smith-Njigba","WR","SEA"],
+    ["Amon-Ra St. Brown","WR","DET"],
+    ["Jonathan Taylor","RB","IND"],
+    ["Christian McCaffrey","RB","SF"],
+    ["CeeDee Lamb","WR","DAL"],
+    ["James Cook III","RB","BUF"],
+    ["Justin Jefferson","WR","MIN"],
+    ["Nico Collins","WR","HOU"],
+    ["Derrick Henry","RB","BAL"],
+    ["A.J. Brown","WR","NE"],
+    ["Drake London","WR","ATL"],
+    ["Brock Bowers","TE","LV"],
+    ["Saquon Barkley","RB","PHI"],
+    ["Ashton Jeanty","RB","LV"],
+    ["George Pickens","WR","DAL"],
+    ["Omarion Hampton","RB","LAC"],
+    ["Trey McBride","TE","ARI"],
+    ["Josh Allen","QB","BUF"],
+    ["Kenneth Walker III","RB","KC"],
+    ["De'Von Achane","RB","MIA"],
+    ["Rashee Rice","WR","KC"],
+    ["Chase Brown","RB","CIN"],
+    ["Chris Olave","WR","NO"],
+    ["Lamar Jackson","QB","BAL"],
+    ["Tee Higgins","WR","CIN"],
+    ["Zay Flowers","WR","BAL"],
+    ["Kyren Williams","RB","LAR"],
+    ["Drake Maye","QB","NE"],
+    ["DeVonta Smith","WR","PHI"],
+    ["Josh Jacobs","RB","GB"],
+    ["Tetairoa McMillan","WR","CAR"],
+    ["Emeka Egbuka","WR","TB"],
+    ["Javonte Williams","RB","DAL"],
+    ["Colston Loveland","TE","CHI"],
+    ["Breece Hall","RB","NYJ"],
+    ["Joe Burrow","QB","CIN"],
+    ["Jeremiyah Love","RB","ARI"],
+    ["Malik Nabers","WR","NYG"],
+    ["Davante Adams","WR","LAR"],
+    ["Terry McLaurin","WR","WAS"],
+    ["Ladd McConkey","WR","LAC"],
+    ["Jameson Williams","WR","DET"],
+    ["Jaylen Waddle","WR","DEN"],
+    ["Christian Watson","WR","GB"],
+    ["Jayden Daniels","QB","WAS"],
+    ["Travis Etienne Jr.","RB","NO"],
+    ["Garrett Wilson","WR","NYJ"],
+    ["Cam Skattebo","RB","NYG"],
+    ["Mike Evans","WR","SF"],
+    ["Quinshon Judkins","RB","CLE"],
+    ["Bucky Irving","RB","TB"],
+    ["Luther Burden III","WR","CHI"],
+    ["Jalen Hurts","QB","PHI"],
+    ["D'Andre Swift","RB","CHI"],
+    ["Tucker Kraft","TE","GB"],
+    ["Rome Odunze","WR","CHI"],
+    ["David Montgomery","RB","HOU"],
+    ["TreVeyon Henderson","RB","NE"],
+    ["DJ Moore","WR","BUF"],
+    ["Tyler Warren","TE","IND"],
+    ["Bhayshul Tuten","RB","JAC"],
+    ["Caleb Williams","QB","CHI"],
+    ["Jadarian Price","RB","SEA"],
+    ["Justin Herbert","QB","LAC"],
+    ["Marvin Harrison Jr.","WR","ARI"],
+    ["Tony Pollard","RB","TEN"],
+    ["Alec Pierce","WR","IND"],
+    ["Jaylen Warren","RB","PIT"],
+    ["Trevor Lawrence","QB","JAC"],
+    ["Brian Thomas Jr.","WR","JAC"],
+    ["Dak Prescott","QB","DAL"],
+    ["DK Metcalf","WR","PIT"],
+    ["Carnell Tate","WR","TEN"],
+    ["Rhamondre Stevenson","RB","NE"],
+    ["Sam LaPorta","TE","DET"],
+    ["Courtland Sutton","WR","DEN"],
+    ["Chuba Hubbard","RB","CAR"],
+    ["Rico Dowdle","RB","PIT"],
+    ["J.K. Dobbins","RB","DEN"],
+    ["Kyle Pitts Sr.","TE","ATL"],
+    ["Harold Fannin Jr.","TE","CLE"],
+    ["Blake Corum","RB","LAR"],
+    ["Parker Washington","WR","JAC"],
+    ["Quentin Johnston","WR","LAC"],
+    ["Kyle Monangai","RB","CHI"],
+    ["Jaxson Dart","QB","NYG"],
+    ["Brock Purdy","QB","SF"],
+    ["Chris Godwin Jr.","WR","TB"],
+    ["Jordyn Tyson","WR","NO"],
+    ["Jordan Addison","WR","MIN"],
+    ["RJ Harvey","RB","DEN"],
+    ["George Kittle","TE","SF"],
+    ["Ricky Pearsall","WR","SF"],
+    ["Patrick Mahomes II","QB","KC"],
+    ["Bo Nix","QB","DEN"],
+    ["Michael Wilson","WR","ARI"],
+    ["Makai Lemon","WR","PHI"],
+    ["Dalton Kincaid","TE","BUF"],
+    ["Matthew Stafford","QB","LAR"],
+    ["Jacory Croskey-Merritt","RB","WAS"],
+    ["Travis Kelce","TE","KC"],
+    ["Jared Goff","QB","DET"],
+    ["Jordan Mason","RB","MIN"],
+    ["Jakobi Meyers","WR","JAC"],
+    ["Aaron Jones Sr.","RB","MIN"],
+    ["Rachaad White","RB","WAS"],
+    ["Jayden Reed","WR","GB"],
+    ["Michael Pittman Jr.","WR","PIT"],
+    ["Kenny Gainwell","RB","TB"],
+    ["Dallas Goedert","TE","PHI"],
+    ["Kyler Murray","QB","MIN"],
+    ["Jonathon Brooks","RB","CAR"],
+    ["Xavier Worthy","WR","KC"],
+    ["Mark Andrews","TE","BAL"],
+    ["Isaiah Likely","TE","NYG"],
+    ["Baker Mayfield","QB","TB"],
+    ["Jordan Love","QB","GB"],
+    ["Wan'Dale Robinson","WR","TEN"],
+    ["Tyler Shough","QB","NO"],
+    ["Josh Downs","WR","IND"],
+    ["Chris Rodriguez Jr.","RB","JAC"],
+    ["Jayden Higgins","WR","HOU"],
+    ["Jake Ferguson","TE","DAL"],
+    ["Woody Marks","RB","HOU"],
+    ["Tyrone Tracy Jr.","RB","NYG"],
+    ["Tyler Allgeier","RB","ARI"],
+    ["Zach Charbonnet","RB","SEA"],
+    ["Romeo Doubs","WR","NE"],
+    ["Malik Willis","QB","MIA"],
+    ["Isiah Pacheco","RB","DET"],
+    ["Matthew Golden","WR","GB"],
+    ["Khalil Shakir","WR","BUF"],
+    ["Jalen Coker","WR","CAR"],
+    ["Rashid Shaheed","WR","SEA"],
+    ["C.J. Stroud","QB","HOU"],
+    ["Sam Darnold","QB","SEA"],
+    ["Tank Bigsby","RB","PHI"],
+    ["KC Concepcion","WR","CLE"],
+    ["Brenton Strange","TE","JAC"],
+    ["Brian Robinson Jr.","RB","ATL"],
+    ["Hunter Henry","TE","NE"],
+    ["Alvin Kamara","RB","NO"],
+    ["Keaton Mitchell","RB","LAC"],
+    ["Oronde Gadsden II","TE","LAC"],
+    ["Tyjae Spears","RB","TEN"],
+    ["Dylan Sampson","RB","CLE"],
+    ["Juwan Johnson","TE","NO"],
+    ["Cam Ward","QB","TEN"],
+    ["Houston Texans","DST","HOU"],
+    ["Jonah Coleman","RB","DEN"],
+    ["Braelon Allen","RB","NYJ"],
+    ["Jauan Jennings","WR","MIN"],
+    ["Chig Okonkwo","TE","WAS"],
+    ["Jerry Jeudy","WR","CLE"],
+    ["Denver Broncos","DST","DEN"],
+    ["Adonai Mitchell","WR","NYJ"],
+    ["Jalen McMillan","WR","TB"],
+    ["Daniel Jones","QB","IND"],
+    ["Seattle Seahawks","DST","SEA"],
+    ["Denzel Boston","WR","CLE"],
+    ["Los Angeles Rams","DST","LAR"],
+    ["Philadelphia Eagles","DST","PHI"],
+    ["Bryce Young","QB","CAR"],
+    ["Omar Cooper Jr.","WR","NYJ"],
+    ["Travis Hunter","WR","JAC"],
+    ["Tre Tucker","WR","LV"],
+    ["Emanuel Wilson","RB","SEA"],
+    ["Kayshon Boutte","WR","NE"],
+    ["Tre' Harris","WR","LAC"],
+    ["Stefon Diggs","WR","FA"],
+    ["Brandon Aubrey","K","DAL"],
+    ["Minnesota Vikings","DST","MIN"],
+    ["Jacksonville Jaguars","DST","JAC"],
+    ["Pittsburgh Steelers","DST","PIT"],
+    ["AJ Barner","TE","SEA"],
+    ["New England Patriots","DST","NE"],
+    ["Kimani Vidal","RB","LAC"],
+    ["Calvin Ridley","WR","TEN"],
+    ["James Conner","RB","ARI"],
+    ["Ryan Flournoy","WR","DAL"],
+    ["Sean Tucker","RB","TB"],
+    ["Kenyon Sadiq","TE","NYJ"],
+    ["Los Angeles Chargers","DST","LAC"],
+    ["Ka'imi Fairbairn","K","HOU"],
+    ["Isaac TeSlaa","WR","DET"],
+    ["Cameron Dicker","K","LAC"],
+    ["Ray Davis","RB","BUF"],
+    ["Cam Little","K","JAC"],
+    ["Emmett Johnson","RB","KC"],
+    ["Dalton Schultz","TE","HOU"],
+    ["Mike Washington Jr.","RB","LV"],
+    ["Troy Franklin","WR","DEN"],
+    ["Jason Myers","K","SEA"],
+    ["Jaylin Noel","WR","HOU"],
+    ["Nicholas Singleton","RB","TEN"],
+    ["Baltimore Ravens","DST","BAL"],
+    ["Terrance Ferguson","TE","LAR"],
+    ["Green Bay Packers","DST","GB"],
+    ["Jalen Nailor","WR","LV"],
+    ["Rashod Bateman","WR","BAL"],
+    ["Kansas City Chiefs","DST","KC"],
+    ["Tyler Loop","K","BAL"],
+    ["Eddy Pineiro","K","SF"],
+    ["Jacoby Brissett","QB","ARI"],
+    ["Darnell Mooney","WR","NYG"],
+    ["Kaytron Allen","RB","WAS"],
+    ["T.J. Hockenson","TE","MIN"],
+    ["Deebo Samuel Sr.","WR","FA"],
+    ["Antonio Williams","WR","WAS"],
+    ["Dontayvion Wicks","WR","PHI"],
+    ["Evan McPherson","K","CIN"],
+    ["Detroit Lions","DST","DET"],
+    ["Jaylen Wright","RB","MIA"],
+    ["Cairo Santos","K","CHI"],
+    ["MarShawn Lloyd","RB","GB"],
+    ["Pat Bryant","WR","DEN"],
+    ["Buffalo Bills","DST","BUF"],
+    ["Andy Borregales","K","NE"],
+    ["Ollie Gordon II","RB","MIA"],
+    ["Jake Bates","K","DET"],
+    ["Cleveland Browns","DST","CLE"],
+    ["De'Zhaun Stribling","WR","SF"],
+    ["Gunnar Helm","TE","TEN"],
+    ["Tank Dell","WR","HOU"],
+    ["Pat Freiermuth","TE","PIT"],
+    ["Chase McLaughlin","K","TB"],
+    ["Malik Washington","WR","MIA"],
+    ["Elic Ayomanor","WR","TEN"],
+    ["Chimere Dike","WR","TEN"],
+    ["Harrison Mevis","K","LAR"],
+    ["David Njoku","TE","LAC"],
+    ["Jaydon Blue","RB","DAL"],
+    ["Cooper Kupp","WR","SEA"],
+    ["Brandon Aiyuk","WR","SF"],
+    ["Geno Smith","QB","NYJ"],
+    ["Chris Boswell","K","PIT"],
+    ["Cade Otton","TE","TB"],
+    ["Aaron Rodgers","QB","PIT"],
+    ["Zachariah Branch","WR","ATL"],
+    ["Keon Coleman","WR","BUF"],
+    ["Harrison Butker","K","KC"],
+    ["Colby Parkinson","TE","LAR"],
+    ["Ted Hurst III","WR","TB"],
+    ["Germie Bernard","WR","PIT"],
+    ["Demond Claiborne","RB","MIN"],
+    ["Devin Neal","RB","NO"],
+    ["Tory Horton","WR","SEA"],
+    ["Malik Davis","RB","DAL"],
+    ["Evan Engram","TE","DEN"],
+    ["Greg Dulcich","TE","MIA"],
+    ["Jordan James","RB","SF"],
+    ["George Holani","RB","SEA"],
+    ["Justice Hill","RB","BAL"],
+    ["Jack Bech","WR","LV"],
+    ["Isaiah Davis","RB","NYJ"],
+    ["Kaleb Johnson","RB","PIT"],
+    ["Tyquan Thornton","WR","KC"],
+    ["Elijah Sarratt","WR","BAL"],
+    ["Chris Brooks","RB","GB"],
+    ["Tyreek Hill","WR","FA"],
+    ["DJ Giddens","RB","IND"],
+    ["Ty Johnson","RB","BUF"],
+    ["Eli Stowers","TE","PHI"],
+    ["Wil Lutz","K","DEN"],
+    ["Christian Kirk","WR","SF"],
+    ["Fernando Mendoza","QB","LV"],
+    ["Darius Slayton","WR","NYG"],
+    ["Theo Johnson","TE","NYG"],
+    ["Kendre Miller","RB","NO"],
+    ["Samaje Perine","RB","CIN"],
+    ["Marvin Mims Jr.","WR","DEN"],
+    ["Atlanta Falcons","DST","ATL"],
+    ["Malachi Fields","WR","NYG"],
+    ["Will Reichard","K","MIN"],
+    ["San Francisco 49ers","DST","SF"],
+    ["Tua Tagovailoa","QB","ATL"],
+    ["Chris Bell","WR","MIA"],
+    ["Mason Taylor","TE","NYJ"],
+    ["Chris Brazzell II","WR","CAR"],
+    ["Trey Benson","RB","ARI"],
+    ["Kaelon Black","RB","SF"],
+    ["Kyle Williams","WR","NE"],
+    ["Xavier Legette","WR","CAR"],
+    ["Devin Singletary","RB","NYG"],
+    ["Devaughn Vele","WR","NO"],
+    ["Emari Demercado","RB","KC"],
+    ["Michael Penix Jr.","QB","ATL"],
+    ["Oscar Delp","TE","NO"],
+    ["Hollywood Brown","WR","PHI"],
+    ["Najee Harris","RB","LAC"],
+    ["Mike Gesicki","TE","CIN"],
+    ["Keenan Allen","WR","LAC"],
+    ["Jerome Ford","RB","WAS"],
+    ["LeQuint Allen Jr.","RB","JAC"],
+    ["Mack Hollins","WR","NE"],
+    ["Adam Randall","RB","BAL"],
+    ["Shedeur Sanders","QB","CLE"],
+    ["Brashard Smith","RB","KC"],
+    ["Seth McGowan","RB","IND"],
+    ["New Orleans Saints","DST","NO"],
+    ["Deshaun Watson","QB","CLE"],
+    ["Isaiah Bond","WR","CLE"],
+    ["Kirk Cousins","QB","LV"],
+    ["Charlie Smyth","K","NO"],
+    ["Isaac Guerendo","RB","SF"],
+    ["Trevor Etienne","RB","CAR"],
+    ["Skyler Bell","WR","BUF"],
+    ["Jarquez Hunter","RB","LAR"],
+    ["Andrei Iosivas","WR","CIN"],
+    ["Jake Tonges","TE","SF"],
+    ["Ja'Kobi Lane","WR","BAL"],
+    ["Indianapolis Colts","DST","IND"],
+    ["Tahj Brooks","RB","CIN"],
+    ["Jaleel McLaughlin","RB","DEN"],
+    ["Chicago Bears","DST","CHI"],
+    ["Joe Mixon","RB","FA"],
+    ["Darnell Washington","TE","PIT"],
+    ["Audric Estime","RB","NO"],
+    ["Will Shipley","RB","PHI"],
+    ["Konata Mumpfield","WR","LAR"],
+    ["Luke McCaffrey","WR","WAS"],
+    ["Cedric Tillman","WR","CLE"],
+    ["J.J. McCarthy","QB","MIN"],
+    ["Jalen Royals","WR","KC"],
+    ["Calvin Austin III","WR","NYG"],
+    ["Tez Johnson","WR","TB"],
+    ["Kareem Hunt","RB","FA"],
+    ["Tyler Higbee","TE","LAR"],
+    ["Caleb Douglas","WR","MIA"],
+    ["Joshua Palmer","WR","BUF"],
+    ["Max Klare","TE","LAR"],
+    ["Elijah Arroyo","TE","SEA"],
+    ["DeMario Douglas","WR","NE"],
+    ["Olamide Zaccheaus","WR","ATL"],
+    ["Carolina Panthers","DST","CAR"],
+    ["Noah Gray","TE","KC"],
+    ["Michael Mayer","TE","LV"],
+    ["Bam Knight","RB","ARI"],
+    ["Jahan Dotson","WR","ATL"],
+    ["Jalen Tolbert","WR","MIA"],
+    ["Cole Kmet","TE","CHI"],
+    ["Ja'Tavion Sanders","TE","CAR"],
+    ["Carson Beck","QB","ARI"],
+    ["Treylon Burks","WR","WAS"],
+    ["Mac Jones","QB","SF"],
+    ["Jake Elliott","K","PHI"],  ];
+
+  function normalizeName(s){
+    return s.replace(/[\u2018\u2019\u2032]/g, "'").replace(/[\u201C\u201D]/g, '"').trim().toLowerCase();
+  }
+
+  var listEl = document.getElementById('player-list');
+  var playerLookup = {};
+  var posCounters = {QB:0,RB:0,WR:0,TE:0,K:0,DST:0};
+  CHEATSHEET.forEach(function(p, idx){
+    var name = p[0], pos = p[1], team = p[2];
+    posCounters[pos] = (posCounters[pos]||0) + 1;
+    var opt = document.createElement('option');
+    opt.value = name;
+    opt.label = pos + posCounters[pos] + ' \u2022 ' + team;
+    listEl.appendChild(opt);
+    playerLookup[normalizeName(name)] = {pos:pos, team:team, rankTag: pos+posCounters[pos], overall: idx+1};
+  });
+
+  var state = null;
+  var STORAGE_KEY = 'draft-state';
+
+  function newState(league, rounds, snake, teams){
+    return {
+      league: league, rounds: rounds, snake: snake, teams: teams,
+      picks: new Array(rounds * teams.length).fill(null),
+      currentPickIndex: 0
+    };
+  }
+
+  function cellOverallIndex(round, teamIdx, snake, numTeams){
+    var posInRound = (snake && round % 2 === 1) ? (numTeams - 1 - teamIdx) : teamIdx;
+    return round * numTeams + posInRound;
+  }
+
+  function overallToRoundTeam(overallIndex, snake, numTeams){
+    var round = Math.floor(overallIndex / numTeams);
+    var posInRound = overallIndex % numTeams;
+    var teamIdx = (snake && round % 2 === 1) ? (numTeams - 1 - posInRound) : posInRound;
+    return {round: round, teamIdx: teamIdx};
+  }
+
+  async function saveState(){
+    if(!state) return;
+    try{ await window.storage.set(STORAGE_KEY, JSON.stringify(state), false); }
+    catch(e){ console.error('Save failed', e); }
+  }
+  async function loadState(){
+    try{
+      var res = await window.storage.get(STORAGE_KEY, false);
+      if(res && res.value) return JSON.parse(res.value);
+    }catch(e){}
+    return null;
+  }
+  async function clearState(){ try{ await window.storage.delete(STORAGE_KEY, false); }catch(e){} }
+
+  var teamsGrid = document.getElementById('teams-grid');
+  for(var i=1;i<=10;i++){
+    var row = document.createElement('div');
+    row.className = 'team-input-row';
+    row.innerHTML = '<span class="pick-num display">'+i+'</span><input type="text" class="team-name-input" placeholder="Team / drafter name" data-slot="'+i+'" />';
+    teamsGrid.appendChild(row);
+  }
+
+  function showResumeBar(saved){
+    var slot = document.getElementById('resume-slot');
+    var picksMade = saved.picks.filter(function(p){return p;}).length;
+    var bar = document.createElement('div');
+    bar.className = 'resume-bar';
+    bar.innerHTML = '<span><strong>'+ (saved.league || 'Unnamed league') +'</strong> &mdash; in progress ('+picksMade+' picks made). Resume where you left off?</span>' +
+      '<div class="btns"><button class="ghost-btn" id="discard-resume">Start over</button><button class="gold-btn" id="do-resume">Resume draft</button></div>';
+    slot.appendChild(bar);
+    document.getElementById('do-resume').onclick = function(){ state = saved; goToBoard(); };
+    document.getElementById('discard-resume').onclick = function(){ clearState(); slot.innerHTML = ''; };
+  }
+
+  document.getElementById('start-btn').onclick = function(){
+    var league = document.getElementById('league-name').value.trim() || 'Fantasy Draft';
+    var rounds = parseInt(document.getElementById('rounds').value, 10) || 15;
+    var snake = document.getElementById('snake').checked;
+    var inputs = document.querySelectorAll('.team-name-input');
+    var teams = [];
+    inputs.forEach(function(inp, idx){ teams.push(inp.value.trim() || ('Team '+(idx+1))); });
+    state = newState(league, rounds, snake, teams);
+    saveState();
+    goToBoard();
+  };
+
+  document.getElementById('setup-btn').onclick = function(){
+    document.getElementById('board-screen').style.display = 'none';
+    document.getElementById('setup-screen').style.display = 'flex';
+  };
+
+  function goToBoard(){
+    document.getElementById('setup-screen').style.display = 'none';
+    document.getElementById('board-screen').style.display = 'flex';
+    renderBoard();
+  }
+
+  function initials(name){
+    var parts = name.trim().split(/\s+/);
+    if(parts.length === 1) return parts[0].slice(0,2).toUpperCase();
+    return (parts[0][0] + parts[parts.length-1][0]).toUpperCase();
+  }
+
+  function renderBoard(){
+    var numTeams = state.teams.length;
+    var grid = document.getElementById('board-grid');
+    grid.innerHTML = '';
+    grid.style.gridTemplateColumns = '38px repeat('+numTeams+', 1fr)';
+
+    var headerCorner = document.createElement('div');
+    grid.appendChild(headerCorner);
+    var total = state.rounds * numTeams;
+    var curInfo = overallToRoundTeam(Math.min(state.currentPickIndex, total-1), state.snake, numTeams);
+
+    for(var t=0;t<numTeams;t++){
+      var h = document.createElement('div');
+      h.className = 'col-header' + (t===curInfo.teamIdx && state.currentPickIndex < total ? ' active' : '');
+      var nameDiv = document.createElement('div');
+      nameDiv.className = 'team-name';
+      nameDiv.textContent = state.teams[t];
+      h.appendChild(nameDiv);
+      grid.appendChild(h);
+    }
+
+    for(var r=0;r<state.rounds;r++){
+      var rl = document.createElement('div');
+      rl.className = 'round-label';
+      rl.textContent = 'R' + (r+1);
+      grid.appendChild(rl);
+
+      for(var t2=0;t2<numTeams;t2++){
+        var overall = cellOverallIndex(r, t2, state.snake, numTeams);
+        var pick = state.picks[overall];
+        var cell = document.createElement('div');
+        cell.className = 'cell';
+
+        if(pick){
+          var fill = POS_FILL[pick.pos] || POS_FILL.DST;
+          var ink = POS_INK[pick.pos] || POS_INK.DST;
+          cell.style.background = fill;
+          cell.style.color = ink;
+
+          var av;
+          if(pick.photo){
+            av = document.createElement('img');
+            av.className = 'avatar';
+            av.style.cssText = 'width:34px;height:34px;border-radius:50%;flex-shrink:0;object-fit:cover;background:rgba(0,0,0,0.2);';
+            av.src = pick.photo;
+            (function(imgEl, ink2, txt){
+              imgEl.addEventListener('error', function(){
+                var d = document.createElement('div');
+                d.className = 'avatar-initials';
+                d.style.color = ink2;
+                d.textContent = txt;
+                imgEl.replaceWith(d);
+              });
+            })(av, ink, initials(pick.player));
+          } else {
+            av = document.createElement('div');
+            av.className = 'avatar-initials';
+            av.style.color = ink;
+            av.textContent = initials(pick.player);
+          }
+          cell.appendChild(av);
+
+          var info = document.createElement('div');
+          info.className = 'cell-info';
+          var pname = document.createElement('div');
+          pname.className = 'cell-player';
+          pname.style.color = ink;
+          pname.textContent = pick.player;
+          var meta = document.createElement('div');
+          meta.className = 'cell-meta';
+          meta.style.color = ink;
+          var metaText = pick.pos + (pick.nfl ? (' \u00b7 ' + pick.nfl) : '');
+          if(pick.adpRank) metaText += ' \u00b7 ADP ' + pick.adpRank;
+          meta.textContent = metaText;
+          info.appendChild(pname);
+          info.appendChild(meta);
+          cell.appendChild(info);
+
+          var rankTag = document.createElement('div');
+          rankTag.className = 'cell-rank';
+          rankTag.style.color = ink;
+          rankTag.textContent = (r+1)+'.'+String(t2+1).padStart(2,'0');
+          cell.appendChild(rankTag);
+
+          if(overall === state.currentPickIndex - 1) cell.classList.add('just-drafted');
+        } else if(overall === state.currentPickIndex){
+          cell.classList.add('empty', 'current');
+          var tag = document.createElement('div');
+          tag.className = 'pick-tag display';
+          tag.textContent = (r+1)+'.'+String(t2+1).padStart(2,'0');
+          cell.appendChild(tag);
+        } else {
+          cell.classList.add('empty');
+          var tag2 = document.createElement('div');
+          tag2.className = 'pick-tag display';
+          tag2.textContent = (r+1)+'.'+String(t2+1).padStart(2,'0');
+          cell.appendChild(tag2);
+        }
+        grid.appendChild(cell);
+      }
+    }
+    updateClockBar();
+  }
+
+  function updateClockBar(){
+    var numTeams = state.teams.length;
+    var total = state.rounds * numTeams;
+    var entryBar = document.getElementById('entry-bar');
+    var doneBanner = document.getElementById('done-banner');
+
+    if(state.currentPickIndex >= total){
+      document.getElementById('clock-label').textContent = 'DRAFT COMPLETE';
+      document.getElementById('clock-team').textContent = state.league;
+      document.getElementById('stat-pick').textContent = '--';
+      document.getElementById('stat-overall').textContent = total;
+      entryBar.style.display = 'none';
+      doneBanner.style.display = 'flex';
+      return;
+    }
+    entryBar.style.display = 'flex';
+    doneBanner.style.display = 'none';
+
+    var info = overallToRoundTeam(state.currentPickIndex, state.snake, numTeams);
+    document.getElementById('clock-label').textContent = 'ON THE CLOCK';
+    document.getElementById('clock-team').textContent = state.teams[info.teamIdx];
+    document.getElementById('stat-pick').textContent = (info.round+1)+'.'+String((state.currentPickIndex % numTeams)+1).padStart(2,'0');
+    document.getElementById('stat-overall').textContent = state.currentPickIndex + 1;
+  }
+
+  document.getElementById('f-name').addEventListener('input', function(){
+    var match = playerLookup[normalizeName(this.value)];
+    var hint = document.getElementById('name-hint');
+    if(match){
+      document.getElementById('f-pos').value = match.pos;
+      document.getElementById('f-nfl').value = match.team;
+      hint.textContent = '#' + match.overall + ' overall \u2022 ' + match.rankTag;
+    } else {
+      hint.textContent = '';
+    }
+  });
+
+  // ---------- PHOTO UPLOAD ----------
+  var uploadedPhotoDataUrl = null;
+  var uploadBtn = document.getElementById('upload-btn');
+  var fileInput = document.getElementById('f-photo-file');
+  var urlInput = document.getElementById('f-photo');
+  var preview = document.getElementById('photo-preview');
+  var clearBtn = document.getElementById('photo-clear');
+
+  uploadBtn.addEventListener('click', function(){ fileInput.click(); });
+
+  fileInput.addEventListener('change', function(){
+    var file = this.files && this.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(e){
+      var img = new Image();
+      img.onload = function(){
+        // Downscale so saved state stays small and every photo loads instantly.
+        var size = 160;
+        var canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        var ctx = canvas.getContext('2d');
+        var side = Math.min(img.width, img.height);
+        var sx = (img.width - side) / 2, sy = (img.height - side) / 2;
+        ctx.drawImage(img, sx, sy, side, side, 0, 0, size, size);
+        uploadedPhotoDataUrl = canvas.toDataURL('image/jpeg', 0.85);
+        preview.src = uploadedPhotoDataUrl;
+        preview.classList.add('show');
+        clearBtn.classList.add('show');
+        urlInput.value = '';
+        urlInput.disabled = true;
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  urlInput.addEventListener('input', function(){
+    if(this.value.trim()){
+      uploadedPhotoDataUrl = null;
+      preview.classList.remove('show');
+      clearBtn.classList.remove('show');
+    }
+  });
+
+  clearBtn.addEventListener('click', function(){
+    uploadedPhotoDataUrl = null;
+    preview.classList.remove('show');
+    clearBtn.classList.remove('show');
+    urlInput.disabled = false;
+    urlInput.value = '';
+    fileInput.value = '';
+  });
+
+  function resetPhotoField(){
+    uploadedPhotoDataUrl = null;
+    preview.classList.remove('show');
+    clearBtn.classList.remove('show');
+    urlInput.disabled = false;
+    urlInput.value = '';
+    fileInput.value = '';
+  }
+
+  function draftCurrentPick(){
+    var numTeams = state.teams.length;
+    var total = state.rounds * numTeams;
+    if(state.currentPickIndex >= total) return;
+
+    var name = document.getElementById('f-name').value.trim();
+    if(!name){ document.getElementById('f-name').focus(); return; }
+    var pos = document.getElementById('f-pos').value;
+    var nfl = document.getElementById('f-nfl').value.trim().toUpperCase();
+    var photo = uploadedPhotoDataUrl || document.getElementById('f-photo').value.trim();
+    var match = playerLookup[normalizeName(name)];
+    var adpRank = match ? match.overall : null;
+
+    var info = overallToRoundTeam(state.currentPickIndex, state.snake, numTeams);
+    state.picks[state.currentPickIndex] = {
+      player: name, pos: pos, nfl: nfl, photo: photo, adpRank: adpRank,
+      round: info.round, teamIdx: info.teamIdx
+    };
+    state.currentPickIndex++;
+    saveState();
+    renderBoard();
+
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-nfl').value = '';
+    resetPhotoField();
+    document.getElementById('name-hint').textContent = '';
+    document.getElementById('f-name').focus();
+
+    var wrap = document.querySelector('.board-wrap');
+    wrap.scrollTop = wrap.scrollHeight;
+  }
+
+  document.getElementById('draft-btn').onclick = draftCurrentPick;
+  document.getElementById('f-name').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); draftCurrentPick(); } });
+  document.getElementById('f-nfl').addEventListener('keydown', function(e){ if(e.key === 'Enter'){ e.preventDefault(); draftCurrentPick(); } });
+
+  document.getElementById('undo-btn').onclick = function(){
+    if(state.currentPickIndex <= 0) return;
+    state.currentPickIndex--;
+    state.picks[state.currentPickIndex] = null;
+    saveState();
+    renderBoard();
+  };
+
+  document.getElementById('fullscreen-btn').onclick = function(){
+    if(!document.fullscreenElement) document.documentElement.requestFullscreen().catch(function(){});
+    else document.exitFullscreen();
+  };
+
+  (async function init(){
+    var saved = await loadState();
+    if(saved && saved.picks && saved.picks.some(function(p){return p;})) showResumeBar(saved);
+  })();
+
+})();
+</script>
+</body>
+</html>
